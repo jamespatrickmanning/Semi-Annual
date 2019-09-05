@@ -38,7 +38,7 @@ def check_time(df,time_header,start_time,end_time):
 
 
 def check_depth(df,mindepth):
-    '''keep the depth is out of 10 and correct the format of depth for example:-20 '''
+    '''keep the depth is out of mindepth and correct the format of depth for example:-20 '''
     if len(df)>0:  
         for i in df.index:
             if abs(df['depth'][i])<abs(mindepth):
@@ -55,6 +55,7 @@ def check_depth(df,mindepth):
 
 
 def plot(df,ax1,ax2,linewidth=2,linestyle='--',color='y',alpha=0.5,label='Observed',marker='d',markerfacecolor='y',**kwargs):
+    """import dataframe and ax, plot time-depth and time-temperature"""
     try:
         if len(df)>0:  #the length of dataframe must be bigger than 0
             ax1.plot_date(df['time'],df['temp'],linewidth=linewidth,linestyle=linestyle,color=color,alpha=alpha,label=label,marker=marker,markerfacecolor=markerfacecolor)
@@ -102,6 +103,7 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     ax1=fig.add_axes([0.12, 0.52, 0.76,0.36])
     ax2=fig.add_axes([0.12, 0.12, 0.76,0.36])
     
+    #parameter initialization
     Dmax_t,Dmin_t,Dmax_d,Dmin_d=-9999,9999,-99999,99999 
     Gmax_t,Gmin_t,Gmax_d,Gmin_d=-9999,9999,-99999,99999 
     Fmax_t,Fmin_t,Fmax_d,Fmin_d=-9999,9999,-99999,99999 
@@ -112,8 +114,8 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     Gmax_t,Gmin_t,Gmax_d,Gmin_d=plot(df=GoMOLFs_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='gray',alpha=0.5,label='GoMOLFs',marker='^',markerfacecolor='gray')
     Fmax_t,Fmin_t,Fmax_d,Fmin_d=plot(df=FVCOM_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='black',alpha=0.5,label='FVCOM',marker='^',markerfacecolor='black')
     Cmax_t,Cmin_t,Cmax_d,Cmin_d=plot(df=Clim_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-',color='r',alpha=0.5,label='Clim',marker='d',markerfacecolor='r')
+   
     #calculate the max and min of temperature and depth
-
     MAX_T=max(Tmax_t,Dmax_t,Gmax_t,Fmax_t,Cmax_t)
     MIN_T=min(Tmin_t,Dmin_t,Gmin_t,Fmin_t,Cmin_t)
     MAX_D=max(Tmax_d,Dmax_d,Gmax_d,Fmax_d,Cmax_d)
