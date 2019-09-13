@@ -18,9 +18,8 @@ proj_lib = os.path.join(os.path.join(conda_dir, 'share'), 'proj')
 os.environ["PROJ_LIB"] = proj_lib
 from mpl_toolkits.basemap import Basemap
 import sys
-import pickle
-
-
+import pandas as pd
+import json
 
 def check_time(df,time_header,start_time,end_time):
     '''keep the type of time is datetime
@@ -71,19 +70,37 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     the unit of time interval is days
     use to draw time series plot """
     #get the latest time of get data, and back 30 days as start time
+    df=pd.DataFrame.from_dict(dict[name])
+#    df[]
+    df['time']=df.index
+    tele_df=df[['time','lat','lon','observation_T', 'observation_H']]
+    tele_df.rename(columns={'observation_T':'temp','observation_H':'depth'},inplace=True)
+    Doppio_df=df[['time','lat','lon','Doppio_T', 'Doppio_H']]
+    Doppio_df.rename(columns={'Doppio_T':'temp','Doppio_H':'depth'},inplace=True)
+    GoMOLFs_df=df[['time','lat','lon','GoMOLFs_T', 'GoMOLFs_H']]
+    GoMOLFs_df.rename(columns={'GoMOLFs_T':'temp','GoMOLFs_H':'depth'},inplace=True)
+    FVCOM_df=df[['time','lat','lon','FVCOM_T', 'FVCOM_H']]
+    FVCOM_df.rename(columns={'FVCOM_T':'temp','FVCOM_H':'depth'},inplace=True)
+    Clim_df=df[['time','lat','lon','Clim_T', 'NGDC_H']]
+    Clim_df.rename(columns={'Clim_T':'temp','NGDC_H':'depth'},inplace=True)
+    
+    
     
     #through the parameter of mindepth to screen the data, make sure the depth is out of ten
-    tele_df=check_depth(df=dict['tele_dict'][name],mindepth=mindepth) #this dataframe is obervasion data
-    Doppio_df=check_depth(df=dict['Doppio'][name],mindepth=mindepth)
-    GoMOLFs_df=check_depth(df=dict['GoMOLFs'][name],mindepth=mindepth)
-    FVCOM_df=check_depth(df=dict['FVCOM'][name],mindepth=mindepth)
-    Clim_df=check_depth(df=dict['CrmClim'][name],mindepth=mindepth)
+    tele_df=check_depth(df=tele_df,mindepth=mindepth) #this dataframe is obervasion data
+    Doppio_df=check_depth(df=Doppio_df,mindepth=mindepth)
+    GoMOLFs_df=check_depth(df=GoMOLFs_df,mindepth=mindepth)
+    FVCOM_df=check_depth(df=FVCOM_df,mindepth=mindepth)
+    Clim_df=check_depth(df=Clim_df,mindepth=mindepth)
     #make sure the range of time through the interval and the last time
     if len(tele_df)==0:  
         print(name+': no valuable data')
         return 0
-    if dtime>tele_df['time'][len(tele_df)-1]:
-        start_time=tele_df['time'][len(tele_df)-1]-timedelta(days=timeinterval)
+    endtime=tele_df['time'][len(tele_df)-1]
+    if type(endtime)==str:
+        endtime=datetime.strptime(endtime,'%Y-%m-%d %H:%M:%S')
+    if dtime>endtime:
+        start_time=endtime-timedelta(days=timeinterval)
     else:
         start_time=dtime-timedelta(days=timeinterval)
     #through the start time and end time screen data
@@ -170,12 +187,22 @@ def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300
     """
     the type of start_time_local and end time_local is datetime.datetime
     use to draw the location of raw file and telemetered produced"""
+    df=pd.DataFrame.from_dict(dict[i])
+    df['time']=df.index
+    df=df[['time','lat','lon','observation_T', 'observation_H']]
+    df.rename(columns={'observation_T':'temp','observation_H':'depth'},inplace=True)
     #creat map
     #Create a blank canvas 
     df=check_depth(df.dropna(),mindepth=10) #screen out the data 
     #make sure the start time through the latest time of get data
-    if dtime>df['time'][len(df)-1]:
-        start_time=df['time'][len(df)-1]-timedelta(days=timeinterval)
+    if len(df)==0:  #if the length of 
+        print(name+': valuless data!')
+        return 0
+    endtime=df['time'][len(df)-1]
+    if type(endtime)==str:
+        endtime=datetime.strptime(endtime,'%Y-%m-%d %H:%M:%S')
+    if dtime>endtime:
+        start_time=endtime-timedelta(days=timeinterval)
     else:
         start_time=dtime-timedelta(days=timeinterval)
     df=check_time(df,'time',start_time,dtime) #screen out the valuable data that we need through the time
@@ -202,9 +229,9 @@ def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300
     max_lon=max(df['lon'])
     min_lon=min(df['lon'])
     #keep the max_lon-min_lon>=0.2
-    if (max_lon-min_lon)<=0.2: #0.2 is a parameter that avoid the dataframe only have one value.
-        max_lon=max_lon+(0.2-(max_lon-min_lon))/2.0
-        min_lon=max_lon-0.2
+    if (max_lon-min_lon)<=0.4: #0.2 is a parameter that avoid the dataframe only have one value.
+        max_lon=max_lon+(0.4-(max_lon-min_lon))/2.0
+        min_lon=max_lon-0.4
     #adjust the max and min,let map have the same width and height 
     if (max_lon-min_lon)>(max_lat-min_lat):
         max_lat=max_lat+((max_lon-min_lon)-(max_lat-min_lat))/2.0
@@ -216,6 +243,9 @@ def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300
     while(not zl.isConnected()):#check the internet is good or not
         time.sleep(120)   #if no internet, sleep 2 minates try again
     try:
+#    print(min_lat,max_lat,max_lon,min_lon)
+#    a=1
+#    if a==1:
         service = 'Ocean_Basemap'
         xpixels = 5000 
         #Build a map background
@@ -265,21 +295,19 @@ def to_list(lat,lon):
     return x,y
 
 
-
-dictionary_path='/home/jmanning/Desktop/data_dict/dict_obsdpogmf0529.p' #this dictionary from code: create_obs_dpo_gmf_dict.py
-start_time_str='2018-7-1'
-picture_save='/home/jmanning/Desktop/qwe3/' #use
-
-
-start_time=datetime.strptime(start_time_str,'%Y-%m-%d')
+path='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
+picture_save='/home/jmanning/Desktop/qwe3/' #the directory of dtore picture
 end_time=datetime.now()
-with open(dictionary_path, 'rb') as fp:
-    dict= pickle.load(fp)
+
+with open(path,'r') as fp:
+    dict=json.load(fp)
+#with open(dictionary_path, 'rb') as fp:
+#    dict= pickle.load(fp)
     
-for i in dict['tele_dict'].keys(): #
-    if len(dict['tele_dict'][i])==0:
+for i in dict.keys(): #
+    if i=='end_time':
         continue
     else: 
-        draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)
-#        draw_map(df=dict['tele_dict'][i],name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)
+        draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
+#        draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
 
