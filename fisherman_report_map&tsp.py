@@ -181,6 +181,7 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     if not os.path.exists(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'):
         os.makedirs(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/')
     plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_tsp_'+dtime.strftime('%Y-%m')+'obsclim.ps',dpi=dpi,orientation='landscape')
+    plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_tsp_'+dtime.strftime('%Y-%m')+'obsclim.png',dpi=dpi,orientation='portait')
     print(name+' finished time series plot!')
 
 def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300):
@@ -279,6 +280,7 @@ def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300
             os.makedirs(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/')
         #save the map
         plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_map'+'_'+dtime.strftime('%Y%m')+'.ps',dpi=dpi) #save picture
+        plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_map'+'_'+dtime.strftime('%Y%m')+'.png',dpi=dpi)#save picture as .png for web
         print(name+' finished draw!')
     except KeyboardInterrupt:
         sys.exit()
@@ -295,7 +297,7 @@ def to_list(lat,lon):
     return x,y
 
 
-path='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
+path='/home/jmanning/Mingchao/programe/Semi_Annual/semi_anual-master/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
 picture_save='/home/jmanning/Desktop/qwe3/' #the directory of dtore picture
 end_time=datetime.now()
 
@@ -309,5 +311,5 @@ for i in dict.keys(): #
         continue
     else: 
         draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
-#        draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
+        draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
 
