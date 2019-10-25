@@ -1,9 +1,13 @@
 """
 Created on Fri Mar 15 13:09:10 2019
-
+This creates both a time series plot and a map for each vessel
 
 
 @author: leizhao
+Modifications by JiM & Mingchao in Oct 2019 to:
+    -adding comments and  hardcodes at the top
+    -calulate mean differences in obs and model
+
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,7 +24,12 @@ from mpl_toolkits.basemap import Basemap
 import sys
 import pandas as pd
 import json
-
+#################  HARDCODES ###############
+#path='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
+path='/home/jmanning/py/aq_main/aqmain_and_raw_check/aqmain/dictionary/dictionary.json'
+picture_save='/home/jmanning/py/fishermen_reports/results/' #the directory of dtore picture
+numdays=7
+##################################################################################
 def check_time(df,time_header,start_time,end_time):
     '''keep the type of time is datetime
     input start time and end time, return the data between start time and end time'''
@@ -310,6 +319,6 @@ for i in dict.keys(): #
     if i=='end_time':
         continue
     else: 
-        draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
+        draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,timeinterval=numdays,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
         draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
 
