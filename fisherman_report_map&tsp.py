@@ -101,6 +101,11 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     GoMOLFs_df=check_depth(df=GoMOLFs_df,mindepth=mindepth)
     FVCOM_df=check_depth(df=FVCOM_df,mindepth=mindepth)
     Clim_df=check_depth(df=Clim_df,mindepth=mindepth)
+   	# JiM and Mingchao added the next four lines in Oct 2019 to calculate mean differences
+	mean_error_Doppio=np.mean(tele_df['temp']-Doppio_df['temp'])    
+	mean_error_GoMOLF=np.mean(tele_df['temp']-GoMOLFs_df['temp'])
+	mean_error_FVCOM=np.mean(tele_df['temp']-FVCOM_df['temp'])
+	mean_error_Clim=np.mean(tele_df['temp']-Clim_df['temp'])
     #make sure the range of time through the interval and the last time
     if len(tele_df)==0:  
         print(name+': no valuable data')
@@ -134,13 +139,14 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     Gmax_t,Gmin_t,Gmax_d,Gmin_d=-9999,9999,-99999,99999 
     Fmax_t,Fmin_t,Fmax_d,Fmin_d=-9999,9999,-99999,99999 
     
-    #draw Graph for every module and get the minimum and maxmum of depth and temperature
+ 
+   #draw Graph for every module and get the minimum and maxmum of depth and temperature
     Tmax_t,Tmin_t,Tmax_d,Tmin_d=plot(df=tele_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-.',color='blue',alpha=0.5,label='Observed',marker='o',markerfacecolor='blue')
-    Dmax_t,Dmin_t,Dmax_d,Dmin_d=plot(df=Doppio_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='brown',alpha=0.5,label='DOPPIO',marker='^',markerfacecolor='brown')
-    Gmax_t,Gmin_t,Gmax_d,Gmin_d=plot(df=GoMOLFs_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='gray',alpha=0.5,label='GoMOLFs',marker='^',markerfacecolor='gray')
-    Fmax_t,Fmin_t,Fmax_d,Fmin_d=plot(df=FVCOM_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='black',alpha=0.5,label='FVCOM',marker='^',markerfacecolor='black')
-    Cmax_t,Cmin_t,Cmax_d,Cmin_d=plot(df=Clim_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-',color='r',alpha=0.5,label='Clim',marker='d',markerfacecolor='r')
-   
+    Dmax_t,Dmin_t,Dmax_d,Dmin_d=plot(df=Doppio_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='green',alpha=0.5,label='DOPPIO '+"{0:.2g}".format(mean_error_Doppio),marker='^',markerfacecolor='green')
+    Gmax_t,Gmin_t,Gmax_d,Gmin_d=plot(df=GoMOLFs_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='gray',alpha=0.5,label='GoMOLFs '+"{0:.2g}".format(mean_error_GoMOLF),marker='^',markerfacecolor='gray')
+    Fmax_t,Fmin_t,Fmax_d,Fmin_d=plot(df=FVCOM_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='black',alpha=0.5,label='FVCOM '+"{0:.2g}".format(mean_error_FVCOM),marker='^',markerfacecolor='black')
+    Cmax_t,Cmin_t,Cmax_d,Cmin_d=plot(df=Clim_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-',color='r',alpha=0.5,label='Clim '+"{0:.2g}".format(mean_error_Clim),marker='d',markerfacecolor='r')
+      
     #calculate the max and min of temperature and depth
     MAX_T=max(Tmax_t,Dmax_t,Gmax_t,Fmax_t,Cmax_t)
     MIN_T=min(Tmin_t,Dmin_t,Gmin_t,Fmin_t,Cmin_t)
