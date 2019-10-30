@@ -1,9 +1,10 @@
 """
 Created on Fri Mar 15 13:09:10 2019
-
+This creates both a time series plot and a map for each vessel
 
 
 @author: leizhao
+Modifications by JiM & Mingchao in Oct 2019 to calulate mean differences in obs and model
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +21,14 @@ from mpl_toolkits.basemap import Basemap
 import sys
 import pandas as pd
 import json
+
+#################  HARDCODES ###############
+#path='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
+path='/home/jmanning/py/aq_main/aqmain_and_raw_check/aqmain/dictionary/dictionary.json'
+picture_save='/home/jmanning/py/fishermen_reports/results/' #the directory of dtore picture
+numdays=7
+vessel='Lisa_Ann_III' # this should be  'all' if you want all vessels
+##################################################################################
 
 def check_time(df,time_header,start_time,end_time):
     '''keep the type of time is datetime
@@ -92,6 +101,13 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     GoMOLFs_df=check_depth(df=GoMOLFs_df,mindepth=mindepth)
     FVCOM_df=check_depth(df=FVCOM_df,mindepth=mindepth)
     Clim_df=check_depth(df=Clim_df,mindepth=mindepth)
+
+	# JiM and Mingchao added the next four lines in Oct 2019 to calculate mean differences
+    mean_error_Doppio=np.mean(tele_df['temp']-Doppio_df['temp'])    
+    mean_error_GoMOLF=np.mean(tele_df['temp']-GoMOLFs_df['temp'])
+    mean_error_FVCOM=np.mean(tele_df['temp']-FVCOM_df['temp'])
+    mean_error_Clim=np.mean(tele_df['temp']-Clim_df['temp'])
+
     #make sure the range of time through the interval and the last time
     if len(tele_df)==0:  
         print(name+': no valuable data')
@@ -127,10 +143,10 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     
     #draw Graph for every module and get the minimum and maxmum of depth and temperature
     Tmax_t,Tmin_t,Tmax_d,Tmin_d=plot(df=tele_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-.',color='blue',alpha=0.5,label='Observed',marker='o',markerfacecolor='blue')
-    Dmax_t,Dmin_t,Dmax_d,Dmin_d=plot(df=Doppio_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='brown',alpha=0.5,label='DOPPIO',marker='^',markerfacecolor='brown')
-    Gmax_t,Gmin_t,Gmax_d,Gmin_d=plot(df=GoMOLFs_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='gray',alpha=0.5,label='GoMOLFs',marker='^',markerfacecolor='gray')
-    Fmax_t,Fmin_t,Fmax_d,Fmin_d=plot(df=FVCOM_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='black',alpha=0.5,label='FVCOM',marker='^',markerfacecolor='black')
-    Cmax_t,Cmin_t,Cmax_d,Cmin_d=plot(df=Clim_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-',color='r',alpha=0.5,label='Clim',marker='d',markerfacecolor='r')
+    Dmax_t,Dmin_t,Dmax_d,Dmin_d=plot(df=Doppio_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='brown',alpha=0.5,label='DOPPIO '+"{0:.2g}".format(mean_error_Doppio),marker='^',markerfacecolor='brown')
+    Gmax_t,Gmin_t,Gmax_d,Gmin_d=plot(df=GoMOLFs_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='gray',alpha=0.5,label='GoMOLFs '+"{0:.2g}".format(mean_error_GoMOLF),marker='^',markerfacecolor='gray')
+    Fmax_t,Fmin_t,Fmax_d,Fmin_d=plot(df=FVCOM_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='--',color='black',alpha=0.5,label='FVCOM '+"{0:.2g}".format(mean_error_FVCOM),marker='^',markerfacecolor='black')
+    Cmax_t,Cmin_t,Cmax_d,Cmin_d=plot(df=Clim_dft,ax1=ax1,ax2=ax2,linewidth=2,linestyle='-',color='r',alpha=0.5,label='Clim '+"{0:.2g}".format(mean_error_Clim),marker='d',markerfacecolor='r')
    
     #calculate the max and min of temperature and depth
     MAX_T=max(Tmax_t,Dmax_t,Gmax_t,Fmax_t,Cmax_t)
@@ -181,7 +197,6 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     if not os.path.exists(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'):
         os.makedirs(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/')
     plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_tsp_'+dtime.strftime('%Y-%m')+'obsclim.ps',dpi=dpi,orientation='landscape')
-    plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_tsp_'+dtime.strftime('%Y-%m')+'obsclim.png',dpi=dpi,orientation='portait')
     print(name+' finished time series plot!')
 
 def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300):
@@ -280,7 +295,6 @@ def draw_map(df,name,dtime,path_picture_save,timeinterval=30,mindepth=10,dpi=300
             os.makedirs(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/')
         #save the map
         plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_map'+'_'+dtime.strftime('%Y%m')+'.ps',dpi=dpi) #save picture
-        plt.savefig(path_picture_save+'/picture'+dtime.strftime('%Y-%m-%d')+'/'+name+'_map'+'_'+dtime.strftime('%Y%m')+'.png',dpi=dpi)#save picture as .png for web
         print(name+' finished draw!')
     except KeyboardInterrupt:
         sys.exit()
@@ -296,20 +310,21 @@ def to_list(lat,lon):
         y.append(lon[i])
     return x,y
 
+#### Main code ########################
 
-path='/home/jmanning/Mingchao/programe/Semi_Annual/semi_anual-master/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
-picture_save='/home/jmanning/Desktop/qwe3/' #the directory of dtore picture
 end_time=datetime.now()
 
 with open(path,'r') as fp:
     dict=json.load(fp)
-#with open(dictionary_path, 'rb') as fp:
-#    dict= pickle.load(fp)
-    
-for i in dict.keys(): #
-    if i=='end_time':
-        continue
-    else: 
-        draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
-        draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
+    if vessel!='all':
+        draw_time_series_plot(dict,name=vessel,dtime=end_time,path_picture_save=picture_save,timeinterval=numdays,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
+		#draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
+    else:
+       for i in dict.keys(): #
+            if i=='end_time':
+                continue
+            else: 
+                draw_time_series_plot(dict,name=i,dtime=end_time,path_picture_save=picture_save,timeinterval=numdays,dpi=300)   # time series plot (semi-annual), about Doppio, FVCOM, GoMOFs.
+				#draw_map(dict,name=i,dtime=end_time,path_picture_save=picture_save,dpi=300)  # draw map, the location of observation.
+
 
