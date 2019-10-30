@@ -26,7 +26,7 @@ import json
 #path='/home/jmanning/leizhao/programe/aqmain/dictionary/dictionary.json'  # the path of dictionary.json, this file come from the create_modules_dictionary.py
 path='/home/jmanning/py/aq_main/aqmain_and_raw_check/aqmain/dictionary/dictionary.json'
 picture_save='/home/jmanning/py/fishermen_reports/results/' #the directory of dtore picture
-numdays=7
+numdays=365*4
 vessel='Lisa_Ann_III' # this should be  'all' if you want all vessels
 ##################################################################################
 
@@ -103,10 +103,10 @@ def draw_time_series_plot(dict,name,dtime,path_picture_save,timeinterval=30,dpi=
     Clim_df=check_depth(df=Clim_df,mindepth=mindepth)
 
 	# JiM and Mingchao added the next four lines in Oct 2019 to calculate mean differences
-    mean_error_Doppio=np.mean(tele_df['temp']-Doppio_df['temp'])    
-    mean_error_GoMOLF=np.mean(tele_df['temp']-GoMOLFs_df['temp'])
-    mean_error_FVCOM=np.mean(tele_df['temp']-FVCOM_df['temp'])
-    mean_error_Clim=np.mean(tele_df['temp']-Clim_df['temp'])
+    mean_error_Doppio=np.mean(Doppio_df['temp']-tele_df['temp'])    
+    mean_error_GoMOLF=np.mean(GoMOLFs_df['temp']-tele_df['temp'])
+    mean_error_FVCOM=np.mean(FVCOM_df['temp']-tele_df['temp'])
+    mean_error_Clim=np.mean(Clim_df['temp']-tele_df['temp'])
 
     #make sure the range of time through the interval and the last time
     if len(tele_df)==0:  
